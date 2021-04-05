@@ -1,0 +1,30 @@
+load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("@npm//@bazel/esbuild:index.bzl", "esbuild")
+
+ts_project(
+    name = "compiled",
+    srcs = ["index.ts"],
+    tsconfig = {
+        "compilerOptions": {
+            "esModuleInterop": True,
+        },
+    },
+    deps = [
+        "@npm//@emotion/css",
+        "@npm//stylis",
+    ],
+)
+
+esbuild(
+    name = "bundle",
+    entry_point = "index.ts",
+    platform = "node",
+    tool = select({
+        "@bazel_tools//src/conditions:darwin": "@esbuild_darwin//:bin/esbuild",
+        "@bazel_tools//src/conditions:linux_x86_64": "@esbuild_linux//:bin/esbuild",
+        "@bazel_tools//src/conditions:windows": "@esbuild_windows//:esbuild.exe",
+    }),
+    deps = [
+        ":compiled",
+    ],
+)
